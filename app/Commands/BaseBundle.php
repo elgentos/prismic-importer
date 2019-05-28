@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use Cocur\Slugify\Slugify;
 use Intervention\Image\ImageManagerStatic as Image;
 use LaravelZero\Framework\Commands\Command;
 use ZipArchive;
@@ -241,7 +242,8 @@ abstract class BaseBundle extends Command
      */
     protected function getFilenameInZip($file)
     {
-        $uid = pathinfo($file)['filename'];
+        $slugify = new Slugify();
+        $uid = $slugify->slugify(pathinfo($file)['filename']);
         if (isset($this->mapping[$uid])) {
             $filenameInZip = $this->mapping[$uid]; // filename should be the ID for update
         } else {
