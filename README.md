@@ -6,6 +6,14 @@ It contains a few commands in the `bundle:` namespace to take Markdown source fi
 
 It can;
 
+- Transform different kind of fields;
+    - Key Text
+    - Rich Text (from Markdown)
+    - Image
+    - Date
+    - Datetime
+    - External Link
+    - Media
 - Automatically generate the ZIP file to upload in Prismics Import/Export tool;
 - Encode images to JPG with 90% quality to cut down on filesize;
 - Update existing documents;
@@ -14,6 +22,7 @@ It can;
 ## Supported custom types
 - Author
 - Newsitem
+- Agendaitem
 
 ## Create your own bundle command for your custom type
 To create a bundle command for your custom type, create a new command in `app/Commands` and extend the `BaseBundle` class. You will need to define the following variables;
