@@ -93,7 +93,7 @@ abstract class BaseBundle extends Command
 
 
         foreach ($dateFields as $dateField) {
-            $prismic[$dateField] = date('Y-m-d', strtotime($data[$dateField]));
+            $prismic[$dateField] = date('m-d-Y', strtotime($data[$dateField]));
         }
 
         foreach ($datetimeFields as $datetimeField) {
