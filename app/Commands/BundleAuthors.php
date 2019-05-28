@@ -10,7 +10,6 @@ use Cocur\Slugify\Slugify;
  */
 class BundleAuthors extends BaseBundle
 {
-    protected $UPLOAD_ZIP_FILENAME = 'authors_upload.zip';
     protected $GATSBY_SRC = '../gatsby/src/authors/*.md';
 
     protected $GATSBY_CONTENT_TYPE_ID = 'authors';

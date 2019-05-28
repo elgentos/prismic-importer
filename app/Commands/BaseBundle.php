@@ -13,8 +13,8 @@ use Webuni\FrontMatter\FrontMatter;
  */
 abstract class BaseBundle extends Command
 {
-    protected $UPLOAD_ZIP_FILENAME = '';
-    protected $GATSBY_SRC = '';
+    protected $GATSBY_SRC;
+    protected $UPLOAD_ZIP_FILENAME;
 
     protected $GATSBY_STATIC_UPLOADS_DIR = '../gatsby/static/';
 
@@ -22,8 +22,8 @@ abstract class BaseBundle extends Command
     protected $IMAGE_ENCODING_QUALITY = 90;
     protected $PRISMIC_FILESIZE_UPLOAD_LIMIT_IN_MB = 100;
 
-    protected $GATSBY_CONTENT_TYPE_ID = '';
-    protected $PRISMIC_CONTENT_TYPE_ID = '';
+    protected $GATSBY_CONTENT_TYPE_ID;
+    protected $PRISMIC_CONTENT_TYPE_ID;
 
     /**
      * Contains mapping from UID ('path') to Prismic ID if --export is given
@@ -47,6 +47,8 @@ abstract class BaseBundle extends Command
      */
     public function handle()
     {
+        $this->UPLOAD_ZIP_FILENAME = $this->PRISMIC_CONTENT_TYPE_ID . '_upload.zip';
+
         // Create ID to UID mapping
         $this->mapIdsToUids();
 

@@ -14,7 +14,6 @@ use Webuni\FrontMatter\FrontMatter;
  */
 class BundleNewsitems extends BaseBundle
 {
-    protected $UPLOAD_ZIP_FILENAME = 'newsitems_upload.zip';
     protected $GATSBY_SRC = '../gatsby/src/news/*.md';
     protected $GATSBY_STATIC_UPLOADS_DIR = '../gatsby/static/';
 

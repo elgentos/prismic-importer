@@ -2,7 +2,7 @@
 
 This little Laravel Zero command line tool can transform Gatsby sourced Markdown files into a Prismic JSON structure.
 
-It contains a `bundle:authors` command to take Markdown source files for the Author custom type to Prismic JSON files and bundles them into a ZIP.
+It contains a few commands in the `bundle:` namespace to take Markdown source files for a custom type to Prismic JSON files and bundles them into a ZIP.
 
 It can;
 
@@ -10,6 +10,21 @@ It can;
 - Encode images to JPG with 90% quality to cut down on filesize;
 - Update existing documents;
 - Add new documents.
+
+## Supported custom types
+- Author
+- Newsitem
+
+## Create your own bundle command for your custom type
+To create a bundle command for your custom type, create a new command in `app/Commands` and extend the `BaseBundle` class. You will need to define the following variables;
+
+```
+$GATSBY_SRC - the relative path to the markdown files with a glob pattern (i.e. '../../gatsby/src/authors/*.md')
+$GATSBY_CONTENT_TYPE_ID - the type name as used in Gatsby
+$PRISMIC_CONTENT_TYPE_ID - the API ID for the custom type as used in Prismic
+```
+
+Then you need to implement the `reformatIntoPrismicStructure($data)` method. This will reformat the PHP array version of the Markdown file into the format Prismic needs. Please look at the already existing bundle commands for examples. 
 
 ## Requirements
 - PHP 7.2
