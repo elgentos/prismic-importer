@@ -1,0 +1,42 @@
+{
+  "biography": [
+    {
+      "content": {
+        "spans": [],
+        "text": "Emma Curvers (1985) studeerde filosofie en schrijft over cultuur voor onder meer de Volkskrant, Elle en Volkskrant Magazine. Hiervoor was Curvers tot 2017 hoofdredacteur bij Cineville. In 2014 verscheen haar eerste roman, Iedereen kan schilderen, over een dysfunctioneel Limburgs gezin. Ze werkt nu aan haar tweede.\n"
+      },
+      "type": "paragraph"
+    }
+  ],
+  "firstname": "Emma",
+  "grouplang": "XNwTyhAAAK_zJrwe",
+  "lang": "nl-nl",
+  "lastname": "Curvers",
+  "photo": {
+    "alt": null,
+    "credits": null,
+    "edit": {
+      "background": "#fff",
+      "crop": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 1.0
+    },
+    "height": 851,
+    "origin": {
+      "height": 851,
+      "id": "XNwTvBAAAK_zJrvZ",
+      "url": "https://prismic-io.s3.amazonaws.com/uitgeverijpluim/silhouet.jpg",
+      "width": 1024
+    },
+    "thumbnails": {},
+    "url": "https://prismic-io.s3.amazonaws.com/uitgeverijpluim/a7706e44a283f7b63156fe116e664771b1dc6a8e_silhouet.jpg",
+    "width": 1024
+  },
+  "prefix": "",
+  "tags": [],
+  "title": "Emma Curvers",
+  "type": "authors",
+  "uid": "emma-curvers"
+}
