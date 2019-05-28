@@ -34,10 +34,73 @@ abstract class BaseBundle extends Command
 
     /**
      * @param $data
-     * @param $filename
-     * @return array
+     * @return mixed
      */
     abstract function reformatIntoPrismicStructure($data);
+
+    /**
+     * @param $prismic
+     * @param $data
+     * @param $textFields
+     * @param $markdownContentFields
+     * @param $externalLinkFields
+     * @param $mediaFields
+     * @param $dateFields
+     * @param $datetimeFields
+     * @return array
+     */
+    public function reformatFieldsIntoPrismicStructure(
+        array $prismic,
+        array $data,
+        $textFields = [],
+        $markdownContentFields = [],
+        $externalLinkFields = [],
+        $mediaFields = [],
+        $dateFields = [],
+        $datetimeFields = []
+    ) {
+        foreach ($markdownContentFields as $contentField) {
+            $prismic[$contentField] = $this->getPrismicRichTextStructureFromMarkdown($data[$contentField]);
+        }
+
+        foreach ($textFields as $textField) {
+            if (isset($data[$textField])) {
+                $prismic[$textField] = $data[$textField];
+            }
+        }
+
+        foreach ($externalLinkFields as $externalLink) {
+            if (isset($data[$externalLink]) && $data[$externalLink]) {
+                $prismic[$externalLink] = [];
+                $prismic[$externalLink][] = [
+                    'preview' => null,
+                    'target' => '_blank',
+                    'url' => $data[$externalLink]
+                ];
+            }
+        }
+
+        foreach ($mediaFields as $mediaField) {
+            if (isset($data[$mediaField])) {
+                $relativeMediaField = substr($data[$mediaField], 1);
+                $prismic[$mediaField] = [
+                    'origin' => ['url' => $relativeMediaField],
+                    'url' => $relativeMediaField
+                ];
+            }
+        }
+
+
+        foreach ($dateFields as $dateField) {
+            $prismic[$dateField] = date('Y-m-d', strtotime($data[$dateField]));
+        }
+
+        foreach ($datetimeFields as $datetimeField) {
+            $prismic[$datetimeField] = date('c', strtotime($data[$datetimeField]));
+        }
+
+        return $prismic;
+    };
 
 
     /**
@@ -91,7 +154,7 @@ abstract class BaseBundle extends Command
         $zip->close();
 
         if (filesize($this->UPLOAD_ZIP_FILENAME) > $this->PRISMIC_FILESIZE_UPLOAD_LIMIT_IN_MB * 1024 * 1024) {
-            $this->output->writeln('Warning: your ZIP filesize exceeds '  . $this->PRISMIC_FILESIZE_UPLOAD_LIMIT_IN_MB . 'mb, which is the maximum allowed to upload to Prismic. Try to reduce image quality or image dimensions.');
+            $this->output->writeln('Warning: your ZIP filesize exceeds ' . $this->PRISMIC_FILESIZE_UPLOAD_LIMIT_IN_MB . 'mb, which is the maximum allowed to upload to Prismic. Try to reduce image quality or image dimensions.');
         }
 
         $this->output->writeln('Wrote to ' . $this->UPLOAD_ZIP_FILENAME);
@@ -124,8 +187,8 @@ abstract class BaseBundle extends Command
 
         $zip = new ZipArchive();
         $zip->open($this->option('export'));
-        for( $i = 0; $i < $zip->numFiles; $i++ ){
-            $stat = $zip->statIndex( $i );
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
             $filename = $stat['name'];
             $json = $zip->getFromName($filename);
             $data = json_decode($json, true);

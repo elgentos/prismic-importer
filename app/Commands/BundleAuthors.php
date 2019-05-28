@@ -30,17 +30,6 @@ class BundleAuthors extends BaseBundle
     protected $description = 'Bundle Author NetlifyCMS markdown files into a Zip archive with Prismic JSON files';
 
     /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
-    public function handle()
-    {
-        parent::handle();
-    }
-
-
-    /**
      * @param $data
      * @param $filename
      * @return array
@@ -55,40 +44,19 @@ class BundleAuthors extends BaseBundle
             'uid' => $uid
         ];
 
+        $textFields = ['firstname', 'lastname', 'prefix', 'title'];
+        $externalLinkFields = ['instagram', 'twitter', 'facebook', 'website'];
         $markdownContentFields = ['biography'];
-        foreach ($markdownContentFields as $contentField) {
-            $prismic[$contentField] = $this->getPrismicRichTextStructureFromMarkdown($data[$contentField]);
-        }
-
-        foreach (['firstname', 'lastname', 'prefix', 'title'] as $textField) {
-            if (isset($data[$textField])) {
-                $prismic[$textField] = $data[$textField];
-            }
-        }
-
-        foreach (['instagram', 'twitter', 'facebook', 'website'] as $externalLink) {
-            if (isset($data[$externalLink]) && $data[$externalLink]) {
-                $prismic[$externalLink] = [];
-                $prismic[$externalLink][] = [
-                    'preview' => null,
-                    'target' => '_blank',
-                    'url' => $data[$externalLink]
-                ];
-            }
-        }
-
         $mediaFields = ['photo'];
-        foreach ($mediaFields as $mediaField) {
-            if (isset($data[$mediaField])) {
-                $relativeMediaField = substr($data[$mediaField], 1);
-                $prismic[$mediaField] = [
-                    'origin' => ['url' => $relativeMediaField],
-                    'url' => $relativeMediaField
-                ];
-            }
-        }
 
-        return $prismic;
+        return parent::reformatFieldsIntoPrismicStructure(
+            $prismic,
+            $data,
+            $textFields,
+            $markdownContentFields,
+            $externalLinkFields,
+            $mediaFields
+        );
     }
 
 }

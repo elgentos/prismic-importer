@@ -18,7 +18,7 @@ class BundleNewsitems extends BaseBundle
     protected $GATSBY_STATIC_UPLOADS_DIR = '../gatsby/static/';
 
     protected $GATSBY_CONTENT_TYPE_ID = 'news';
-    protected $PRISMIC_CONTENT_TYPE_ID = 'newss';
+    protected $PRISMIC_CONTENT_TYPE_ID = 'news';
 
     /**
      * The signature of the command.
@@ -35,17 +35,6 @@ class BundleNewsitems extends BaseBundle
     protected $description = 'Bundle News NetlifyCMS markdown files into a Zip archive with Prismic JSON files';
 
     /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
-    public function handle()
-    {
-        parent::handle();
-    }
-
-
-    /**
      * @param $data
      * @param $filename
      * @return array
@@ -53,46 +42,27 @@ class BundleNewsitems extends BaseBundle
     public function reformatIntoPrismicStructure($data)
     {
         $slugify = new Slugify();
-        $uid = $slugify->slugify(implode(' ', [$data['firstname'], $data['prefix'] ?? null, $data['lastname']]));
+        $uid = $slugify->slugify($data['title']);
 
         $prismic = [
             'type' => $this->PRISMIC_CONTENT_TYPE_ID,
             'uid' => $uid
         ];
 
-        $markdownContentFields = ['biography'];
-        foreach ($markdownContentFields as $contentField) {
-            $prismic[$contentField] = $this->getPrismicRichTextStructureFromMarkdown($data[$contentField]);
-        }
-
-        foreach (['firstname', 'lastname', 'prefix', 'title'] as $textField) {
-            if (isset($data[$textField])) {
-                $prismic[$textField] = $data[$textField];
-            }
-        }
-
-        foreach (['instagram', 'twitter', 'facebook', 'website'] as $externalLink) {
-            if (isset($data[$externalLink]) && $data[$externalLink]) {
-                $prismic[$externalLink] = [];
-                $prismic[$externalLink][] = [
-                    'preview' => null,
-                    'target' => '_blank',
-                    'url' => $data[$externalLink]
-                ];
-            }
-        }
-
+        $textFields = ['title', 'author', 'excerpt'];
+        $markdownContentFields = ['content'];
+        $externalLinkFields = ['youtube'];
         $mediaFields = ['photo'];
-        foreach ($mediaFields as $mediaField) {
-            if (isset($data[$mediaField])) {
-                $relativeMediaField = substr($data[$mediaField], 1);
-                $prismic[$mediaField] = [
-                    'origin' => ['url' => $relativeMediaField],
-                    'url' => $relativeMediaField
-                ];
-            }
-        }
+        $dateFields = ['date'];
 
-        return $prismic;
+        return parent::reformatFieldsIntoPrismicStructure(
+            $prismic,
+            $data,
+            $textFields,
+            $markdownContentFields,
+            $externalLinkFields,
+            $mediaFields,
+            $dateFields
+        );
     }
 }
