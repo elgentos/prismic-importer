@@ -16,10 +16,12 @@ class BundleAuthors extends Command
 {
     const AUTHORS_UPLOAD_ZIP = 'authors_upload.zip';
     const GATSBY_SRC_AUTHORS = '../gatsby/src/authors/*.md';
+    const GATSBY_STATIC_UPLOADS_DIR = '../gatsby/static/';
 
     const IMAGE_ENCODING_FORMAT = 'jpg';
     const IMAGE_ENCODING_QUALITY = 90;
-    const GATSBY_STATIC_UPLOADS_DIR = '../gatsby/static/';
+    const PRISMIC_FILESIZE_UPLOAD_LIMIT_IN_MB = 100;
+
     /**
      * The signature of the command.
      *
@@ -88,6 +90,10 @@ class BundleAuthors extends Command
 
         // Close Zip
         $zip->close();
+
+        if (filesize(self::AUTHORS_UPLOAD_ZIP) > self::PRISMIC_FILESIZE_UPLOAD_LIMIT_IN_MB * 1024 * 1024) {
+            $this->output->writeln('Warning: your ZIP filesize exceeds '  . self::PRISMIC_FILESIZE_UPLOAD_LIMIT_IN_MB . 'mb, which is the maximum allowed to upload to Prismic. Try to reduce image quality or image dimensions.');
+        }
 
         $this->output->writeln('Wrote to ' . self::AUTHORS_UPLOAD_ZIP);
     }
