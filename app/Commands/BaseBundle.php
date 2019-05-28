@@ -96,11 +96,11 @@ abstract class BaseBundle extends Command
         }
 
         foreach ($datetimeFields as $datetimeField) {
-            $prismic[$datetimeField] = date('c', strtotime($data[$datetimeField]));
+            $prismic[$datetimeField] = date('c', ($data[$datetimeField]));
         }
 
         return $prismic;
-    };
+    }
 
 
     /**
@@ -132,7 +132,7 @@ abstract class BaseBundle extends Command
             // Transform Markdown frontmatter into JSON files
             $array = $this->parseMarkdownToArray($markdown);
 
-            $this->output->writeln('Processing ' . $this->PRISMIC_CONTENT_TYPE_ID . ' ' . $array['title']);
+            $this->output->write('Processing ' . $this->PRISMIC_CONTENT_TYPE_ID . ' ' . $array['title'] . '... ');
 
             // Reformat JSON files to match Prismic structure
             $array = $this->reformatIntoPrismicStructure($array);
@@ -145,6 +145,8 @@ abstract class BaseBundle extends Command
 
             // Get filename (new document or update document)
             $filenameInZip = $this->getFilenameInZip($file);
+
+            $this->output->writeln('adding ' . $filenameInZip);
 
             // Zip it up!
             $zip->addFromString($filenameInZip, $json);
