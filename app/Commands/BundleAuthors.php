@@ -3,20 +3,29 @@
 namespace App\Commands;
 
 use Cocur\Slugify\Slugify;
+use Intervention\Image\ImageManagerStatic as Image;
 use LaravelZero\Framework\Commands\Command;
-use Michelf\Markdown;
 use ZipArchive;
 use Webuni\FrontMatter\FrontMatter;
 
+/**
+ * Class BundleAuthors
+ * @package App\Commands
+ */
 class BundleAuthors extends Command
 {
     const AUTHORS_UPLOAD_ZIP = 'authors_upload.zip';
+    const GATSBY_SRC_AUTHORS = '../gatsby/src/authors/*.md';
+
+    const IMAGE_ENCODING_FORMAT = 'jpg';
+    const IMAGE_ENCODING_QUALITY = 90;
+    const GATSBY_STATIC_UPLOADS_DIR = '../gatsby/static/';
     /**
      * The signature of the command.
      *
      * @var string
      */
-    protected $signature = 'bundle:authors {--export= : Prismic Export file}';
+    protected $signature = 'bundle:authors {--export= : Optional Prismic Export file to map UIDs to IDs}';
 
     /**
      * The description of the command.
@@ -26,7 +35,7 @@ class BundleAuthors extends Command
     protected $description = 'Bundle Author NetlifyCMS markdown files into a Zip archive with Prismic JSON files';
 
     /**
-     * Contains mapping from UID ('path') to Prismic ID
+     * Contains mapping from UID ('path') to Prismic ID if --export is given
      *
      * @var array
      */
@@ -51,30 +60,29 @@ class BundleAuthors extends Command
         $zip = new ZipArchive;
         $zip->open(self::AUTHORS_UPLOAD_ZIP, ZipArchive::CREATE);
 
-        // Copy images from Gatsby installation
-
-        // Resize images (so the ultimate Zip file isn't above 100mb)
-
         // Read markdown files from Gatsby dir
-        $files = glob('../gatsby/src/authors/*.md');
-        $files = ['../gatsby/src/authors/emma-curvers.md'];
+        $files = glob(self::GATSBY_SRC_AUTHORS);
         foreach ($files as $file) {
             $markdown = file_get_contents($file);
 
             // Transform Markdown frontmatter into JSON files
             $array = $this->parseMarkdownToArray($markdown);
 
+            $this->output->writeln('Processing author ' . $array['title']);
+
             // Reformat JSON files to match Prismic structure
-            $json = $this->reformatIntoPrismicJson($array);
+            $array = $this->reformatIntoPrismicStructure($array);
+            
+            // Process photo
+            $array = $this->addPhotoToZip($array, $zip);
+            
+            // Encode to JSON
+            $json = json_encode($array);
+
+            // Get filename (new document or update document)
+            $filenameInZip = $this->getFilenameInZip($file);
 
             // Zip it up!
-            $uid = pathinfo($file)['filename'];
-            if (isset($this->mapping[$uid])) {
-                $filenameInZip = $this->mapping[$uid]; // filename should be the ID for update
-            } else {
-                $filenameInZip = 'new_' . pathinfo($file)['filename']; // or should be prepended with new_ for new
-            }
-            $filenameInZip .= '.json';
             $zip->addFromString($filenameInZip, $json);
         }
 
@@ -88,14 +96,12 @@ class BundleAuthors extends Command
     /**
      * @param $data
      * @param $filename
-     * @return false|string
+     * @return array
      */
-    private function reformatIntoPrismicJson($data)
+    private function reformatIntoPrismicStructure($data)
     {
-        $updatePhoto = false;
-
         $slugify = new Slugify();
-        $uid = $slugify->slugify(implode(' ', [$data['firstname'], $data['prefix'], $data['lastname']]));
+        $uid = $slugify->slugify(implode(' ', [$data['firstname'], $data['prefix'] ?? null, $data['lastname']]));
 
         $prismic = [
             'type' => 'authors',
@@ -124,19 +130,23 @@ class BundleAuthors extends Command
             }
         }
 
-        if (isset($data['photo']) && $updatePhoto) {
-            $relativePhotoPath = substr($data['photo'], 1);
-            $prismic['photo'] = [
-                'origin' => ['url' => $relativePhotoPath],
-                'url' => $relativePhotoPath
-            ];
+        $mediaFields = ['photo'];
+        foreach ($mediaFields as $mediaField) {
+            if (isset($data[$mediaField])) {
+                $relativeMediaField = substr($data[$mediaField], 1);
+                $prismic[$mediaField] = [
+                    'origin' => ['url' => $relativeMediaField],
+                    'url' => $relativeMediaField
+                ];
+            }
         }
 
-        return json_encode($prismic);
+        return $prismic;
     }
 
     /**
-     *
+     * @param $markdown
+     * @return array
      */
     private function parseMarkdownToArray($markdown)
     {
@@ -151,10 +161,14 @@ class BundleAuthors extends Command
     }
 
     /**
-     * @return array
+     * @return void
      */
     private function mapIdsToUids()
     {
+        if (!$this->option('export')) {
+            return;
+        }
+
         $zip = new ZipArchive();
         $zip->open($this->option('export'));
         for( $i = 0; $i < $zip->numFiles; $i++ ){
@@ -186,5 +200,36 @@ class BundleAuthors extends Command
     private function getPrismicRichTextStructureFromMarkdown($contentField)
     {
         return json_decode(shell_exec('ruby kramdown-to-prismic.rb ' . escapeshellarg($contentField)), true);
+    }
+
+    /**
+     * @param array $array
+     * @param ZipArchive $zip
+     * @return array
+     */
+    private function addPhotoToZip(array $array, ZipArchive $zip): array
+    {
+        if (isset($array['photo']) && isset($array['photo']['url'])) {
+            $photo = self::GATSBY_STATIC_UPLOADS_DIR . $array['photo']['url'];
+            $img = Image::make($photo)->encode(self::IMAGE_ENCODING_FORMAT, self::IMAGE_ENCODING_QUALITY);
+            $zip->addFromString('uploads/' . basename($photo), $img);
+        }
+        return $array;
+    }
+
+    /**
+     * @param $file
+     * @return mixed|string
+     */
+    private function getFilenameInZip($file)
+    {
+        $uid = pathinfo($file)['filename'];
+        if (isset($this->mapping[$uid])) {
+            $filenameInZip = $this->mapping[$uid]; // filename should be the ID for update
+        } else {
+            $filenameInZip = 'new_' . pathinfo($file)['filename']; // or should be prepended with new_ for new
+        }
+        $filenameInZip .= '.json';
+        return $filenameInZip;
     }
 }
